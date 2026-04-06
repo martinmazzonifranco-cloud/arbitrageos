@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 
 const PASSWORD="Kairoz2026!";
+
 function LoginScreen({onLogin}){
   const[pass,setPass]=useState("");
   const[error,setError]=useState(false);
@@ -22,18 +23,7 @@ function LoginScreen({onLogin}){
   );
 }
 
-const D = {
-  bg:"#0a0a0f",surface:"#111118",card:"#16161f",border:"rgba(255,255,255,0.07)",
-  borderMed:"rgba(255,255,255,0.13)",primary:"#f1f5f9",muted:"#64748b",faint:"#334155",
-  accent:"#818cf8",accentD:"#4f46e5",accentL:"rgba(129,140,248,0.12)",
-  green:"#4ade80",greenD:"#16a34a",greenL:"rgba(74,222,128,0.12)",
-  red:"#f87171",redD:"#dc2626",redL:"rgba(248,113,113,0.12)",
-  amber:"#fbbf24",amberD:"#d97706",amberL:"rgba(251,191,36,0.12)",
-  purple:"#c084fc",purpleL:"rgba(192,132,252,0.12)",
-  cyan:"#22d3ee",cyanL:"rgba(34,211,238,0.12)",
-};
-
-// ─── FBA CALCS ────────────────────────────────────────────────
+const D={bg:"#0a0a0f",surface:"#111118",card:"#16161f",border:"rgba(255,255,255,0.07)",borderMed:"rgba(255,255,255,0.13)",primary:"#f1f5f9",muted:"#64748b",faint:"#334155",accent:"#818cf8",accentD:"#4f46e5",accentL:"rgba(129,140,248,0.12)",green:"#4ade80",greenD:"#16a34a",greenL:"rgba(74,222,128,0.12)",red:"#f87171",redD:"#dc2626",redL:"rgba(248,113,113,0.12)",amber:"#fbbf24",amberD:"#d97706",amberL:"rgba(251,191,36,0.12)",purple:"#c084fc",purpleL:"rgba(192,132,252,0.12)",cyan:"#22d3ee",cyanL:"rgba(34,211,238,0.12)"};
 const VAT=0.21;
 const REFERRAL={Beauty:0.08,Health:0.08,Grocery:0.08,HomeKitchen:0.15,Default:0.15};
 const FBA_T=[{max:0.1,fee:2.46},{max:0.2,fee:2.63},{max:0.5,fee:3.06},{max:1.0,fee:3.48},{max:2.0,fee:4.29},{max:5.0,fee:5.26},{max:10,fee:6.69},{max:20,fee:9.44}];
@@ -43,29 +33,28 @@ const r2=n=>Math.round(n*100)/100;
 function calcProfit(buyPrice,amzPrice,weight,cat){
   const refPct=REFERRAL[cat]??REFERRAL.Default;
   const bp=parseFloat(buyPrice)||0,ap=parseFloat(amzPrice)||0,w=parseFloat(weight)||0.5;
-  if(!bp||!ap) return {net:0,roi:0,margin:0,ref:0,fba:0,ship:0,refPct,ok:false};
+  if(!bp||!ap)return{net:0,roi:0,margin:0,ref:0,fba:0,ship:0,refPct,ok:false};
   const amzExVAT=ap/(1+VAT),buyExVAT=bp/(1+VAT);
   const ref=ap*refPct,fba=fbaFee(w),ship=Math.max(0.30,w*0.45);
   const vatNet=(ap-amzExVAT)-(bp-buyExVAT);
   const net=amzExVAT-buyExVAT-ref-fba-ship-vatNet;
-  return {net:r2(net),roi:r2((net/bp)*100),margin:r2((net/ap)*100),ref:r2(ref),fba:r2(fba),ship:r2(ship),refPct,ok:true};
+  return{net:r2(net),roi:r2((net/bp)*100),margin:r2((net/ap)*100),ref:r2(ref),fba:r2(fba),ship:r2(ship),refPct,ok:true};
 }
 
 function calcScore(roi,bsr,sellers,amzSells,trend){
   const roiS=roi>=60?30:roi>=40?25:roi>=25?18:roi>=15?10:roi>=0?4:0;
   const bsrS=bsr<=500?25:bsr<=1000?22:bsr<=3000?18:bsr<=10000?12:bsr<=30000?6:0;
   let compS=sellers<=2?20:sellers<=5?16:sellers<=10?10:sellers<=20?4:0;
-  if(amzSells) compS=Math.max(0,compS-10);
+  if(amzSells)compS=Math.max(0,compS-10);
   const total=Math.min(100,roiS+bsrS+compS+10+(trend==="up"?10:trend==="flat"?5:0));
   const flags=[];
-  if(amzSells) flags.push("AMAZON_SELLS");
-  if(trend==="down") flags.push("PRICE_FALLING");
-  if(roi<15) flags.push("LOW_MARGIN");
-  if(sellers>20) flags.push("HIGH_COMPETITION");
-  return {total,flags,level:total>=70?"high":total>=45?"medium":"low",rec:total>=70&&!flags.length?"BUY":total>=45?"WATCH":"SKIP"};
+  if(amzSells)flags.push("AMAZON_SELLS");
+  if(trend==="down")flags.push("PRICE_FALLING");
+  if(roi<15)flags.push("LOW_MARGIN");
+  if(sellers>20)flags.push("HIGH_COMPETITION");
+  return{total,flags,level:total>=70?"high":total>=45?"medium":"low",rec:total>=70&&!flags.length?"BUY":total>=45?"WATCH":"SKIP"};
 }
 
-// ─── CATÁLOGO BASE (demo) con links de compra ─────────────────
 const BASE_CAT=[
   {id:"b1",name:"Detergente Ariel 26 lav.",brand:"Ariel",ean:"4084500572096",cat:"HomeKitchen",emoji:"🧹",buyPrice:5.80,store:"Alcampo",storeUrl:"https://www.compraonline.alcampo.es/search?q=ariel+detergente",amzUrl:"https://www.amazon.es/s?k=ariel+detergente+26+lavados",amzPrice:11.99,weight:1.1,bsr:620,sellers:5,amzSells:false,trend:"up",dailySales:2.4},
   {id:"b2",name:"Papel Higiénico Scottex x24",brand:"Scottex",ean:"8006540891254",cat:"HomeKitchen",emoji:"🧻",buyPrice:6.90,store:"El Corte Inglés",storeUrl:"https://www.elcorteingles.es/supermercado/buscar/?s=scottex+papel+higienico",amzUrl:"https://www.amazon.es/s?k=scottex+papel+higienico+x24",amzPrice:15.99,weight:2.2,bsr:390,sellers:4,amzSells:false,trend:"up",dailySales:3.7},
@@ -79,24 +68,19 @@ const BASE_CAT=[
   {id:"b10",name:"Colonia Nenuco 600ml",brand:"Nenuco",ean:"8410289004006",cat:"Health",emoji:"👶",buyPrice:4.20,store:"Mercadona",storeUrl:"https://tienda.mercadona.es/search?query=nenuco+colonia",amzUrl:"https://www.amazon.es/s?k=nenuco+colonia+600ml",amzPrice:7.49,weight:0.65,bsr:1890,sellers:9,amzSells:false,trend:"up",dailySales:1.3},
 ];
 
-// ─── STORAGE (persistencia en memoria de la sesión) ───────────
 const useStorage=(key,init)=>{
-  const [val,setVal]=useState(()=>{
-    try{ const s=sessionStorage.getItem(key); return s?JSON.parse(s):init; }catch{ return init; }
-  });
-  const set=v=>{ const nv=typeof v==="function"?v(val):v; setVal(nv); try{ sessionStorage.setItem(key,JSON.stringify(nv)); }catch{} };
-  return [val,set];
+  const[val,setVal]=useState(()=>{try{const s=sessionStorage.getItem(key);return s?JSON.parse(s):init;}catch{return init;}});
+  const set=v=>{const nv=typeof v==="function"?v(val):v;setVal(nv);try{sessionStorage.setItem(key,JSON.stringify(nv));}catch{}};
+  return[val,set];
 };
 
 const EMPTY_P={id:0,name:"",brand:"",ean:"",cat:"HomeKitchen",emoji:"📦",buyPrice:"",store:"",storeUrl:"",amzUrl:"",amzPrice:"",weight:"",bsr:"",sellers:"",amzSells:false,trend:"flat",dailySales:""};
 const LCFG={high:{c:D.green,bg:D.greenL,l:"Alta"},medium:{c:D.amber,bg:D.amberL,l:"Media"},low:{c:D.red,bg:D.redL,l:"Baja"}};
-const RCFG={BUY:{c:D.green,bg:D.greenL,l:"COMPRAR"},WATCH:{c:D.amber,bg:D.amberL,l:"EVALUAR"},SKIP:{c:D.red,bg:D.redL,l:"ESPERAR"}};
 const CATS=[{v:"Beauty",l:"Beauty (8%)"},{v:"Health",l:"Health (8%)"},{v:"Grocery",l:"Grocery (8%)"},{v:"HomeKitchen",l:"Home Kitchen (15%)"},{v:"OfficeProducts",l:"Office (15%)"}];
 const TRENDS=[{v:"up",l:"↑ Subiendo"},{v:"flat",l:"→ Estable"},{v:"down",l:"↓ Bajando"}];
 const EMOJIS=["📦","🧴","🧹","💆","🧻","👶","🍽","🦷","👕","🚿","🪣","🌿","🤧","🧼","💊","🍞","☕","🥤"];
 
-// ─── MICRO UI (mobile-first) ──────────────────────────────────
-const Card=({children,style={},...p})=><div style={{background:D.card,borderRadius:12,border:`0.5px solid ${D.border}`,padding:"0.9rem 1rem",...style}} {...p}/>;
+const Card=({children,style={},...p})=><div style={{background:D.card,borderRadius:12,border:`0.5px solid ${D.border}`,padding:"0.9rem 1rem",...style}}{...p}/>;
 const Pill=({children,c,bg})=><span style={{background:bg,color:c,fontSize:11,fontWeight:700,padding:"3px 8px",borderRadius:999,whiteSpace:"nowrap",border:`0.5px solid ${c}25`}}>{children}</span>;
 const KPI=({label,value,sub,c,bg,icon})=>(
   <div style={{background:bg||D.surface,borderRadius:10,padding:"0.8rem",flex:1,minWidth:100,border:`0.5px solid ${D.border}`}}>
@@ -106,11 +90,11 @@ const KPI=({label,value,sub,c,bg,icon})=>(
   </div>
 );
 const Prog=({pct,c,h=5})=><div style={{background:D.faint+"44",borderRadius:999,height:h,overflow:"hidden"}}><div style={{width:`${Math.min(100,Math.max(0,pct))}%`,background:c,height:"100%",borderRadius:999,transition:"width .3s"}}/></div>;
-const Inp=({label,value,onChange,placeholder,type="text",half})=>(
-  <div style={{marginBottom:8,flex:half?"1 1 45%":"1 1 100%"}}>
+const Inp=({label,value,onChange,placeholder,type="text"})=>(
+  <div style={{marginBottom:8}}>
     {label&&<label style={{fontSize:11,color:D.muted,display:"block",marginBottom:3}}>{label}</label>}
     <input value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder||label} type={type}
-      style={{width:"100%",padding:"10px 12px",borderRadius:8,border:`0.5px solid ${D.borderMed}`,background:D.surface,color:D.primary,fontSize:14,outline:"none",boxSizing:"border-box",WebkitAppearance:"none"}}/>
+      style={{width:"100%",padding:"10px 12px",borderRadius:8,border:`0.5px solid ${D.borderMed}`,background:D.surface,color:D.primary,fontSize:14,outline:"none",boxSizing:"border-box"}}/>
   </div>
 );
 const Slc=({label,value,onChange,options})=>(
@@ -120,7 +104,7 @@ const Slc=({label,value,onChange,options})=>(
   </div>
 );
 const BtnPrimary=({children,onClick,disabled,full})=>(
-  <button onClick={onClick} disabled={disabled} style={{background:disabled?D.faint:"linear-gradient(135deg,#6366f1,#7c3aed)",color:"#fff",border:"none",padding:"14px 20px",borderRadius:12,cursor:disabled?"not-allowed":"pointer",fontSize:15,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center",gap:8,width:full?"100%":"auto",WebkitAppearance:"none",transition:"opacity .2s",opacity:disabled?0.5:1}}>
+  <button onClick={onClick} disabled={disabled} style={{background:disabled?D.faint:"linear-gradient(135deg,#6366f1,#7c3aed)",color:"#fff",border:"none",padding:"14px 20px",borderRadius:12,cursor:disabled?"not-allowed":"pointer",fontSize:15,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center",gap:8,width:full?"100%":"auto",opacity:disabled?0.5:1}}>
     {children}
   </button>
 );
@@ -133,57 +117,51 @@ const LinkBtn=({href,children,color})=>(
 const NAV=[{id:"hoy",icon:"⚡",label:"Hoy"},{id:"productos",icon:"📦",label:"Productos"},{id:"filtros",icon:"🎛",label:"Filtros"},{id:"calc",icon:"📊",label:"Calc."},{id:"deposito",icon:"🏭",label:"Depósito"},{id:"dash",icon:"📈",label:"Stats"}];
 
 export default function App(){
-  const [loggedIn,setLoggedIn]=useState(()=>{try{return sessionStorage.getItem("loggedIn")==="true";}catch{return false;}});
+  const[loggedIn,setLoggedIn]=useState(()=>{try{return sessionStorage.getItem("loggedIn")==="true";}catch{return false;}});
   const login=()=>{try{sessionStorage.setItem("loggedIn","true");}catch{}setLoggedIn(true);};
   if(!loggedIn)return <LoginScreen onLogin={login}/>;
-  const [view,setView]=useState("hoy");
-  const [products,setProducts]=useStorage("products",[]);
-  const [deposit,setDeposit]=useStorage("deposit",[]);
-  const [filters,setFilters]=useStorage("filters",{minROI:"25",maxSellers:"10",minMargin:"15",maxBSR:"30000",excludeAmzSells:true,onlyTrend:"any"});
-  const [capital,setCapital]=useStorage("capital","");
+
+  const[view,setView]=useState("hoy");
+  const[products,setProducts]=useStorage("products",[]);
+  const[deposit,setDeposit]=useStorage("deposit",[]);
+  const[filters,setFilters]=useStorage("filters",{minROI:"25",maxSellers:"10",minMargin:"15",maxBSR:"30000",excludeAmzSells:true,onlyTrend:"any"});
+  const[capital,setCapital]=useStorage("capital","");
 
   const allCat=[...BASE_CAT,...products];
   const enriched=allCat.map(p=>{
     const pr=calcProfit(p.buyPrice,p.amzPrice,p.weight,p.cat);
     const sc=calcScore(pr.roi,parseInt(p.bsr)||99999,parseInt(p.sellers)||99,p.amzSells,p.trend);
-    return {...p,profit:pr,score:sc};
+    return{...p,profit:pr,score:sc};
   });
-
   const filtered=enriched.filter(p=>{
-    if(p.profit.roi<parseFloat(filters.minROI||0)) return false;
-    if(parseInt(p.sellers||99)>parseInt(filters.maxSellers||99)) return false;
-    if(p.profit.margin<parseFloat(filters.minMargin||0)) return false;
-    if(parseInt(p.bsr||99999)>parseInt(filters.maxBSR||99999)) return false;
-    if(filters.excludeAmzSells&&p.amzSells) return false;
-    if(filters.onlyTrend!=="any"&&p.trend!==filters.onlyTrend) return false;
+    if(p.profit.roi<parseFloat(filters.minROI||0))return false;
+    if(parseInt(p.sellers||99)>parseInt(filters.maxSellers||99))return false;
+    if(p.profit.margin<parseFloat(filters.minMargin||0))return false;
+    if(parseInt(p.bsr||99999)>parseInt(filters.maxBSR||99999))return false;
+    if(filters.excludeAmzSells&&p.amzSells)return false;
+    if(filters.onlyTrend!=="any"&&p.trend!==filters.onlyTrend)return false;
     return true;
   });
-
   const highOpp=filtered.filter(p=>p.score.level==="high").length;
   const depositUnits=deposit.reduce((s,p)=>s+p.units,0);
 
   return(
-    <div style={{fontFamily:"var(--font-sans)",background:D.bg,minHeight:"100vh",color:D.primary,paddingBottom:80}}>
-      {/* HEADER */}
+    <div style={{fontFamily:"system-ui,sans-serif",background:D.bg,minHeight:"100vh",color:D.primary,paddingBottom:80}}>
       <div style={{background:D.surface,borderBottom:`0.5px solid ${D.border}`,padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:30}}>
-        <div style={{color:D.accent,fontWeight:800,fontSize:16}}>Arbitrage<span style={{color:D.purple}}>OS</span></div>
+        <div style={{color:D.accent,fontWeight:800,fontSize:16}}>Kairoz<span style={{color:D.purple}}>Distri</span></div>
         <div style={{display:"flex",gap:6,alignItems:"center"}}>
           {highOpp>0&&<div style={{background:D.greenL,color:D.green,fontSize:11,fontWeight:700,padding:"3px 9px",borderRadius:999}}>⚡{highOpp}</div>}
           <div style={{background:D.surface,color:D.muted,fontSize:11,padding:"3px 9px",borderRadius:999,border:`0.5px solid ${D.border}`}}>🏭{depositUnits}uds</div>
         </div>
       </div>
-
-      {/* CONTENT */}
       <div style={{maxWidth:680,margin:"0 auto",padding:"1rem"}}>
-        {view==="hoy"      &&<ViewHoy enriched={enriched} filtered={filtered} capital={capital} setCapital={setCapital} filters={filters} deposit={deposit} setDeposit={setDeposit}/>}
+        {view==="hoy"      &&<ViewHoy enriched={enriched} filtered={filtered} capital={capital} setCapital={setCapital} deposit={deposit} setDeposit={setDeposit}/>}
         {view==="productos"&&<ViewProductos products={products} setProducts={setProducts}/>}
         {view==="filtros"  &&<ViewFiltros filters={filters} setFilters={setFilters}/>}
         {view==="calc"     &&<ViewCalc/>}
         {view==="deposito" &&<ViewDeposito deposit={deposit} setDeposit={setDeposit}/>}
         {view==="dash"     &&<ViewDash enriched={enriched} filtered={filtered} deposit={deposit}/>}
       </div>
-
-      {/* BOTTOM NAV — MÓVIL */}
       <div style={{position:"fixed",bottom:0,left:0,right:0,background:D.surface,borderTop:`0.5px solid ${D.border}`,display:"flex",zIndex:40}}>
         {NAV.map(n=>(
           <button key={n.id} onClick={()=>setView(n.id)} style={{flex:1,padding:"10px 4px 8px",background:"transparent",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
@@ -193,80 +171,60 @@ export default function App(){
           </button>
         ))}
       </div>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}} *{box-sizing:border-box} input,select,button{-webkit-tap-highlight-color:transparent}`}</style>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}*{box-sizing:border-box}`}</style>
     </div>
   );
 }
 
-// ════════════════════════════════════════════
-// ⚡ COMPRAR HOY
-// ════════════════════════════════════════════
-function ViewHoy({enriched,filtered,capital,setCapital,filters,deposit,setDeposit}){
-  const [plan,setPlan]=useState(null);
-  const [scanning,setScanning]=useState(false);
-  const [logs,setLogs]=useState([]);
-  const [prog,setProg]=useState(0);
-  const [bought,setBought]=useState(false);
-  const [showDetail,setShowDetail]=useState(null);
+function ViewHoy({enriched,filtered,capital,setCapital,deposit,setDeposit}){
+  const[plan,setPlan]=useState(null);
+  const[scanning,setScanning]=useState(false);
+  const[logs,setLogs]=useState([]);
+  const[prog,setProg]=useState(0);
+  const[bought,setBought]=useState(false);
+  const[showDetail,setShowDetail]=useState(null);
   const logRef=useRef(null);
-
   const SOURCES=["Alcampo","Carrefour","Makro","Mercadona","El Corte Inglés","Amazon"];
 
-  const addLog=(msg,c)=>{ setScanLogs?setScanLogs:setLogs(l=>[...l,{msg,c}]); setLogs(l=>[...l,{msg,c}]); setTimeout(()=>{ if(logRef.current) logRef.current.scrollTop=9999; },30); };
+  const addLog=(msg,c)=>{setLogs(l=>[...l,{msg,c}]);setTimeout(()=>{if(logRef.current)logRef.current.scrollTop=9999;},30);};
 
   const calcPlan=()=>{
     const cap=parseFloat(capital)||0;
-    if(cap<=0) return;
-    setScanning(true); setPlan(null); setBought(false); setLogs([]); setProg(0);
-    const steps=[
-      [0,   "🚀 Iniciando búsqueda...","#818cf8"],
-      [250, "🔍 Escaneando Alcampo...","#64748b"],
-      [500, "✅ Alcampo OK","#4ade80"],
-      [650, "🔍 Escaneando Carrefour...","#64748b"],
-      [900, "✅ Carrefour OK","#4ade80"],
-      [1050,"🔍 Escaneando Makro...","#64748b"],
-      [1300,"✅ Makro OK","#4ade80"],
-      [1450,"🔍 Escaneando Mercadona...","#64748b"],
-      [1700,"✅ Mercadona OK","#4ade80"],
-      [1850,"🧮 Calculando FBA + IVA real...","#64748b"],
-    ];
-    steps.forEach(([t,msg,c],idx)=>setTimeout(()=>{
-      addLog(msg,c);
-      setProg(Math.round((idx+1)/(steps.length+2)*100));
-      if(logRef.current) logRef.current.scrollTop=9999;
-    },t));
+    if(cap<=0)return;
+    setScanning(true);setPlan(null);setBought(false);setLogs([]);setProg(0);
+    const steps=[[0,"🚀 Iniciando búsqueda...","#818cf8"],[250,"🔍 Escaneando Alcampo...","#64748b"],[500,"✅ Alcampo OK","#4ade80"],[650,"🔍 Escaneando Carrefour...","#64748b"],[900,"✅ Carrefour OK","#4ade80"],[1050,"🔍 Escaneando Makro...","#64748b"],[1300,"✅ Makro OK","#4ade80"],[1450,"🔍 Escaneando Mercadona...","#64748b"],[1700,"✅ Mercadona OK","#4ade80"],[1850,"🧮 Calculando FBA + IVA...","#64748b"]];
+    steps.forEach(([t,msg,c],idx)=>setTimeout(()=>{addLog(msg,c);setProg(Math.round((idx+1)/(steps.length+2)*100));},t));
     setTimeout(()=>{
       const candidates=filtered.filter(p=>p.profit.net>0).sort((a,b)=>b.score.total-a.score.total);
-      candidates.slice(0,4).forEach((p,i)=>setTimeout(()=>addLog(`💡 ${p.name} — ROI ${p.profit.roi}% ✓`,"#4ade80"),i*120));
+      candidates.slice(0,4).forEach((p,i)=>setTimeout(()=>addLog(`💡 ${p.name} — ROI ${p.profit.roi}%`,"#4ade80"),i*120));
       setTimeout(()=>{
-        let left=cap;
-        const items=[];
+        let left=cap;const items=[];
         for(const p of candidates){
           const bp=parseFloat(p.buyPrice)||0;
-          if(!bp||left<bp*2) continue;
+          if(!bp||left<bp*2)continue;
           const maxU=Math.floor(left/(bp*1.05));
           const daily=parseFloat(p.dailySales)||1;
           const units=Math.max(1,Math.min(maxU,Math.round(daily*20)));
           const inv=r2(bp*units);
-          if(inv>left) continue;
+          if(inv>left)continue;
           items.push({...p,units,inv,benTotal:r2(p.profit.net*units),dias:Math.ceil(units/Math.max(0.1,daily))});
           left=r2(left-inv);
-          if(items.length>=6) break;
+          if(items.length>=6)break;
         }
         addLog(`✅ ${items.length} productos recomendados`,"#818cf8");
         setPlan({items,totalInv:r2(cap-left),totalBen:r2(items.reduce((s,x)=>s+x.benTotal,0)),left:r2(left),cap});
-        setProg(100); setScanning(false);
+        setProg(100);setScanning(false);
       },600);
     },2200);
   };
 
   const confirmar=()=>{
-    if(!plan) return;
+    if(!plan)return;
     plan.items.forEach(item=>{
       setDeposit(d=>{
         const ex=d.find(x=>x.productId===item.id);
-        if(ex) return d.map(x=>x.productId===item.id?{...x,units:x.units+item.units,invested:r2(x.invested+item.inv)}:x);
-        return [...d,{productId:item.id,name:item.name,emoji:item.emoji,units:item.units,invested:item.inv,buyPrice:parseFloat(item.buyPrice),amzPrice:parseFloat(item.amzPrice),amzUrl:item.amzUrl||"",storeUrl:item.storeUrl||"",profit:item.profit,date:new Date().toLocaleDateString("es-ES")}];
+        if(ex)return d.map(x=>x.productId===item.id?{...x,units:x.units+item.units,invested:r2(x.invested+item.inv)}:x);
+        return[...d,{productId:item.id,name:item.name,emoji:item.emoji,units:item.units,invested:item.inv,buyPrice:parseFloat(item.buyPrice),amzPrice:parseFloat(item.amzPrice),amzUrl:item.amzUrl||"",storeUrl:item.storeUrl||"",profit:item.profit,date:new Date().toLocaleDateString("es-ES")}];
       });
     });
     setBought(true);
@@ -278,28 +236,22 @@ function ViewHoy({enriched,filtered,capital,setCapital,filters,deposit,setDeposi
     <div>
       <h1 style={{fontSize:20,fontWeight:800,margin:"0 0 4px"}}>¿Qué compro hoy? ⚡</h1>
       <p style={{color:D.muted,fontSize:13,margin:"0 0 16px"}}>Introduce tu capital y el sistema busca las mejores oportunidades.</p>
-
-      {/* CAPITAL + BOTÓN */}
       <div style={{background:"linear-gradient(135deg,#1a1a2e,#16213e)",borderRadius:14,border:`0.5px solid ${D.accent}30`,padding:"1.1rem",marginBottom:16}}>
         <label style={{fontSize:12,color:D.muted,display:"block",marginBottom:6}}>💶 Capital disponible hoy (€)</label>
-        <input value={capital} onChange={e=>setCapital(e.target.value)} placeholder="Ej: 300" type="number" inputMode="decimal"
-          style={{width:"100%",padding:"12px 14px",borderRadius:10,border:`1px solid ${D.accent}50`,background:"rgba(129,140,248,0.08)",color:"#fff",fontSize:22,fontWeight:800,outline:"none",marginBottom:10}}/>
+        <input value={capital} onChange={e=>setCapital(e.target.value)} placeholder="Ej: 300" type="number"
+          style={{width:"100%",padding:"12px 14px",borderRadius:10,border:`1px solid ${D.accent}50`,background:"rgba(129,140,248,0.08)",color:"#fff",fontSize:22,fontWeight:800,outline:"none",marginBottom:10,boxSizing:"border-box"}}/>
         <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
           {[50,100,200,500].map(v=>(
-            <button key={v} onClick={()=>setCapital(String(v))} style={{background:capital==v?D.accentD:D.surface,color:"#fff",border:`0.5px solid ${D.borderMed}`,padding:"6px 14px",borderRadius:8,cursor:"pointer",fontSize:13,fontWeight:capital==v?700:400}}>€{v}</button>
+            <button key={v} onClick={()=>setCapital(String(v))} style={{background:capital==v?D.accentD:D.surface,color:"#fff",border:`0.5px solid ${D.borderMed}`,padding:"6px 14px",borderRadius:8,cursor:"pointer",fontSize:13}}>€{v}</button>
           ))}
         </div>
         <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
-          {SOURCES.map(s=>(
-            <div key={s} style={{background:"rgba(255,255,255,0.06)",border:`0.5px solid rgba(255,255,255,0.1)`,borderRadius:999,padding:"3px 10px",fontSize:11,color:"rgba(255,255,255,0.6)"}}>🔍 {s}</div>
-          ))}
+          {SOURCES.map(s=><div key={s} style={{background:"rgba(255,255,255,0.06)",border:"0.5px solid rgba(255,255,255,0.1)",borderRadius:999,padding:"3px 10px",fontSize:11,color:"rgba(255,255,255,0.6)"}}>🔍 {s}</div>)}
         </div>
         <BtnPrimary onClick={calcPlan} disabled={scanning||!capital} full>
           {scanning?<><span style={{width:16,height:16,border:"2px solid rgba(255,255,255,0.3)",borderTop:"2px solid #fff",borderRadius:"50%",display:"inline-block",animation:"spin .8s linear infinite"}}/>Buscando...</>:"⚡ Calcular plan del día"}
         </BtnPrimary>
       </div>
-
-      {/* TERMINAL */}
       {logs.length>0&&(
         <div style={{background:"#08080f",borderRadius:10,border:`0.5px solid ${D.border}`,padding:"10px 12px",marginBottom:14}}>
           <div ref={logRef} style={{maxHeight:130,overflowY:"auto"}}>
@@ -308,8 +260,6 @@ function ViewHoy({enriched,filtered,capital,setCapital,filters,deposit,setDeposi
           {(scanning||plan)&&<Prog pct={prog} c={D.accent} h={4}/>}
         </div>
       )}
-
-      {/* PLAN */}
       {plan&&(
         <div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}}>
@@ -318,21 +268,18 @@ function ViewHoy({enriched,filtered,capital,setCapital,filters,deposit,setDeposi
             <KPI label="ROI del día" value={`${portfolioROI}%`} c={D.purple} bg={D.purpleL} icon="📈"/>
             <KPI label="Capital libre" value={`€${plan.left}`} icon="🏦"/>
           </div>
-
           <div style={{fontWeight:700,fontSize:15,marginBottom:10}}>📋 Plan — {new Date().toLocaleDateString("es-ES",{day:"numeric",month:"short"})}</div>
-
           {plan.items.length===0?(
             <Card style={{textAlign:"center",padding:"1.5rem"}}>
               <div style={{fontSize:28,marginBottom:8}}>🔧</div>
-              <div style={{fontWeight:700,marginBottom:4}}>Sin resultados con estos filtros</div>
-              <div style={{color:D.muted,fontSize:13}}>Reduce el ROI mínimo en Filtros o sube el máximo de sellers.</div>
+              <div style={{fontWeight:700,marginBottom:4}}>Sin resultados</div>
+              <div style={{color:D.muted,fontSize:13}}>Reduce el ROI mínimo en Filtros.</div>
             </Card>
           ):plan.items.map((item,i)=>{
             const lcfg=LCFG[item.score.level];
             const open=showDetail===item.id;
             return(
               <div key={item.id} style={{background:D.card,border:`0.5px solid ${i===0?D.green+"60":D.border}`,borderRadius:14,marginBottom:10,overflow:"hidden",borderLeft:`4px solid ${lcfg.c}`}}>
-                {/* CABECERA */}
                 <div style={{padding:"0.9rem 1rem",cursor:"pointer"}} onClick={()=>setShowDetail(open?null:item.id)}>
                   <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
                     <div style={{width:42,height:42,borderRadius:10,background:D.greenL,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{item.emoji||"📦"}</div>
@@ -348,7 +295,6 @@ function ViewHoy({enriched,filtered,capital,setCapital,filters,deposit,setDeposi
                       <div style={{fontSize:9,color:D.muted}}>ROI</div>
                     </div>
                   </div>
-                  {/* MINI STATS */}
                   <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6,marginTop:10}}>
                     {[{l:"Compra",v:`€${item.buyPrice}`,c:D.red},{l:"Amazon",v:`€${item.amzPrice}`,c:D.green},{l:"Uds",v:item.units,c:D.primary},{l:"Beneficio",v:`€${item.benTotal}`,c:D.green}].map((m,j)=>(
                       <div key={j} style={{background:D.surface,borderRadius:8,padding:"5px 4px",textAlign:"center"}}>
@@ -358,15 +304,11 @@ function ViewHoy({enriched,filtered,capital,setCapital,filters,deposit,setDeposi
                     ))}
                   </div>
                   <div style={{display:"flex",alignItems:"center",gap:4,marginTop:6}}>
-                    <span style={{fontSize:11,color:D.muted}}>Ver links y detalle</span>
-                    <span style={{color:D.muted,fontSize:12}}>{open?"▲":"▼"}</span>
+                    <span style={{fontSize:11,color:D.muted}}>Ver links y detalle {open?"▲":"▼"}</span>
                   </div>
                 </div>
-
-                {/* DETALLE EXPANDIDO */}
                 {open&&(
                   <div style={{padding:"0 1rem 1rem",borderTop:`0.5px solid ${D.border}`}}>
-                    {/* LINKS DE COMPRA */}
                     <div style={{marginBottom:12,paddingTop:10}}>
                       <div style={{fontSize:12,fontWeight:700,color:D.accent,marginBottom:8}}>🛒 COMPRAR AHORA</div>
                       <div style={{display:"flex",flexDirection:"column",gap:8}}>
@@ -377,9 +319,7 @@ function ViewHoy({enriched,filtered,capital,setCapital,filters,deposit,setDeposi
                               <div style={{fontWeight:700,fontSize:14}}>{item.store}</div>
                               <div style={{fontSize:18,fontWeight:800,color:D.red}}>€{item.buyPrice} <span style={{fontSize:11,color:D.muted}}>× {item.units} uds = €{item.inv}</span></div>
                             </div>
-                            <LinkBtn href={item.storeUrl||`https://www.google.es/search?q=${encodeURIComponent(item.name+" "+item.store)}`} color={D.green}>
-                              Ir a comprar
-                            </LinkBtn>
+                            <LinkBtn href={item.storeUrl||`https://www.google.es/search?q=${encodeURIComponent(item.name+" "+item.store)}`} color={D.green}>Ir a comprar</LinkBtn>
                           </div>
                         </div>
                         <div style={{background:D.surface,borderRadius:10,padding:"10px 12px",border:`0.5px solid ${D.amber}40`}}>
@@ -389,23 +329,15 @@ function ViewHoy({enriched,filtered,capital,setCapital,filters,deposit,setDeposi
                               <div style={{fontWeight:700,fontSize:14}}>Amazon.es</div>
                               <div style={{fontSize:18,fontWeight:800,color:D.green}}>€{item.amzPrice}</div>
                             </div>
-                            <LinkBtn href={item.amzUrl||`https://www.amazon.es/s?k=${encodeURIComponent(item.name)}`} color={D.amber}>
-                              Ver en Amazon
-                            </LinkBtn>
+                            <LinkBtn href={item.amzUrl||`https://www.amazon.es/s?k=${encodeURIComponent(item.name)}`} color={D.amber}>Ver en Amazon</LinkBtn>
                           </div>
                         </div>
                       </div>
                     </div>
-                    {/* RESUMEN BENEFICIO */}
                     <div style={{background:D.greenL,borderRadius:10,padding:"10px 12px",marginBottom:10,border:`0.5px solid ${D.green}40`}}>
                       <div style={{fontSize:12,fontWeight:700,color:D.green,marginBottom:6}}>Resumen de esta operación</div>
                       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
-                        {[
-                          {l:"Inversión total",v:`€${item.inv}`,c:D.red},
-                          {l:"Ingreso esperado",v:`€${r2(parseFloat(item.amzPrice)*item.units)}`,c:D.primary},
-                          {l:"Beneficio neto",v:`€${item.benTotal}`,c:D.green},
-                          {l:"~Días para vender",v:`${item.dias}d`,c:D.amber},
-                        ].map((m,j)=>(
+                        {[{l:"Inversión",v:`€${item.inv}`,c:D.red},{l:"Ingreso esperado",v:`€${r2(parseFloat(item.amzPrice)*item.units)}`,c:D.primary},{l:"Beneficio neto",v:`€${item.benTotal}`,c:D.green},{l:"~Días venta",v:`${item.dias}d`,c:D.amber}].map((m,j)=>(
                           <div key={j} style={{background:"rgba(0,0,0,0.2)",borderRadius:8,padding:"6px 8px",textAlign:"center"}}>
                             <div style={{fontSize:10,color:D.muted}}>{m.l}</div>
                             <div style={{fontSize:14,fontWeight:800,color:m.c}}>{m.v}</div>
@@ -413,22 +345,13 @@ function ViewHoy({enriched,filtered,capital,setCapital,filters,deposit,setDeposi
                         ))}
                       </div>
                     </div>
-                    {/* DESGLOSE FBA */}
-                    <div style={{fontSize:12,color:D.muted}}>
-                      {[{l:"Comisión Amazon",v:`€${item.profit.ref}`},{l:"Tarifa FBA",v:`€${item.profit.fba}`},{l:"Envío a FBA",v:`€${item.profit.ship}`}].map((m,j)=>(
-                        <div key={j} style={{display:"flex",justifyContent:"space-between",padding:"2px 0",borderBottom:`0.5px solid ${D.border}`}}><span>{m.l}</span><span style={{color:D.red}}>{m.v}</span></div>
-                      ))}
-                    </div>
                   </div>
                 )}
               </div>
             );
           })}
-
           {plan.items.length>0&&!bought&&(
-            <div style={{marginTop:16}}>
-              <BtnPrimary onClick={confirmar} full>✅ He comprado — añadir al depósito</BtnPrimary>
-            </div>
+            <div style={{marginTop:16}}><BtnPrimary onClick={confirmar} full>✅ He comprado — añadir al depósito</BtnPrimary></div>
           )}
           {bought&&(
             <div style={{background:D.greenL,border:`1px solid ${D.green}60`,borderRadius:12,padding:"14px 16px",display:"flex",gap:10,alignItems:"center",marginTop:12}}>
@@ -442,46 +365,31 @@ function ViewHoy({enriched,filtered,capital,setCapital,filters,deposit,setDeposi
   );
 }
 
-// ════════════════════════════════════════════
-// 🎛 FILTROS EDITABLES
-// ════════════════════════════════════════════
 function ViewFiltros({filters,setFilters}){
   const upd=k=>v=>setFilters(f=>({...f,[k]:v}));
   const reset=()=>setFilters({minROI:"25",maxSellers:"10",minMargin:"15",maxBSR:"30000",excludeAmzSells:true,onlyTrend:"any"});
   return(
     <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-        <div><h2 style={{fontSize:18,fontWeight:800,margin:0}}>🎛 Filtros de búsqueda</h2><p style={{fontSize:13,color:D.muted,margin:"3px 0 0"}}>Personaliza qué productos ver en "Comprar Hoy"</p></div>
+        <div><h2 style={{fontSize:18,fontWeight:800,margin:0}}>🎛 Filtros</h2><p style={{fontSize:13,color:D.muted,margin:"3px 0 0"}}>Personaliza qué productos ver</p></div>
         <button onClick={reset} style={{background:D.surface,color:D.muted,border:`0.5px solid ${D.borderMed}`,padding:"7px 14px",borderRadius:8,cursor:"pointer",fontSize:12}}>Reset</button>
       </div>
-
       <Card style={{marginBottom:12}}>
         <div style={{fontWeight:700,fontSize:14,marginBottom:12,color:D.accent}}>📊 Rentabilidad mínima</div>
-        {[
-          {l:"ROI mínimo (%)",k:"minROI",ph:"25",tip:"Porcentaje de retorno sobre la inversión. Recomendado: 25%"},
-          {l:"Margen mínimo (%)",k:"minMargin",ph:"15",tip:"% del precio de venta que es beneficio. Recomendado: 15%"},
-        ].map(f=>(
-          <div key={f.k}>
-            <Inp label={f.l} value={filters[f.k]} onChange={upd(f.k)} placeholder={f.ph} type="number"/>
-            <div style={{fontSize:11,color:D.faint,marginTop:-4,marginBottom:10}}>💡 {f.tip}</div>
-          </div>
-        ))}
-        {/* Slider ROI */}
+        <Inp label="ROI mínimo (%)" value={filters.minROI} onChange={upd("minROI")} placeholder="25" type="number"/>
+        <div style={{fontSize:11,color:D.faint,marginTop:-4,marginBottom:10}}>💡 Recomendado: 25%. Bájalo si no aparecen productos.</div>
+        <Inp label="Margen mínimo (%)" value={filters.minMargin} onChange={upd("minMargin")} placeholder="15" type="number"/>
         <div style={{marginBottom:8}}>
           <div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:D.muted,marginBottom:4}}><span>ROI mínimo</span><span style={{color:D.accent,fontWeight:800}}>{filters.minROI||25}%</span></div>
           <input type="range" min="5" max="100" step="5" value={filters.minROI||25} onChange={e=>upd("minROI")(e.target.value)} style={{width:"100%",accentColor:D.accent}}/>
-          <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:D.faint}}><span>5% (más resultados)</span><span>100% (solo los mejores)</span></div>
         </div>
       </Card>
-
       <Card style={{marginBottom:12}}>
         <div style={{fontWeight:700,fontSize:14,marginBottom:12,color:D.accent}}>🏆 Criterios Amazon</div>
-        <Inp label="Sellers máximo en Amazon" value={filters.maxSellers} onChange={upd("maxSellers")} placeholder="10" type="number"/>
-        <div style={{fontSize:11,color:D.faint,marginTop:-4,marginBottom:10}}>💡 Menos sellers = menos competencia. Recomendado: 10</div>
-        <Inp label="BSR máximo (ranking Amazon)" value={filters.maxBSR} onChange={upd("maxBSR")} placeholder="30000" type="number"/>
-        <div style={{fontSize:11,color:D.faint,marginTop:-4,marginBottom:10}}>💡 BSR bajo = más ventas. Recomendado: 30.000. Un BSR de 500 es muy bueno.</div>
+        <Inp label="Sellers máximo" value={filters.maxSellers} onChange={upd("maxSellers")} placeholder="10" type="number"/>
+        <Inp label="BSR máximo" value={filters.maxBSR} onChange={upd("maxBSR")} placeholder="30000" type="number"/>
         <div style={{marginBottom:12}}>
-          <label style={{fontSize:11,color:D.muted,display:"block",marginBottom:6}}>Tendencia de precio en Amazon</label>
+          <label style={{fontSize:11,color:D.muted,display:"block",marginBottom:6}}>Tendencia</label>
           <div style={{display:"flex",gap:6}}>
             {[["any","Todas"],["up","↑ Subiendo"],["flat","→ Estable"]].map(([v,l])=>(
               <button key={v} onClick={()=>upd("onlyTrend")(v)} style={{flex:1,background:filters.onlyTrend===v?D.accentD:D.surface,color:"#fff",border:`0.5px solid ${D.borderMed}`,padding:"8px 6px",borderRadius:8,cursor:"pointer",fontSize:12,fontWeight:filters.onlyTrend===v?700:400}}>{l}</button>
@@ -491,25 +399,16 @@ function ViewFiltros({filters,setFilters}){
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 12px",background:D.surface,borderRadius:10,border:`0.5px solid ${D.border}`}}>
           <div>
             <div style={{fontWeight:600,fontSize:13}}>Excluir si Amazon vende</div>
-            <div style={{fontSize:11,color:D.muted}}>Evita competir con Amazon directamente</div>
+            <div style={{fontSize:11,color:D.muted}}>Evita competir con Amazon</div>
           </div>
           <button onClick={()=>upd("excludeAmzSells")(!filters.excludeAmzSells)} style={{background:filters.excludeAmzSells?D.greenD:D.surface,border:`0.5px solid ${filters.excludeAmzSells?D.green:D.borderMed}`,color:"#fff",padding:"6px 14px",borderRadius:20,cursor:"pointer",fontSize:13,fontWeight:700,minWidth:60}}>
             {filters.excludeAmzSells?"Sí":"No"}
           </button>
         </div>
       </Card>
-
-      {/* Vista previa filtros activos */}
       <Card style={{background:"rgba(129,140,248,0.06)",border:`0.5px solid ${D.accent}30`}}>
-        <div style={{fontWeight:700,fontSize:13,color:D.accent,marginBottom:8}}>Filtros activos ahora</div>
-        {[
-          {l:"ROI mínimo",v:`${filters.minROI||25}%`},
-          {l:"Margen mínimo",v:`${filters.minMargin||15}%`},
-          {l:"Sellers máx.",v:filters.maxSellers||10},
-          {l:"BSR máx.",v:`#${parseInt(filters.maxBSR||30000).toLocaleString()}`},
-          {l:"Excluir Amazon",v:filters.excludeAmzSells?"Sí":"No"},
-          {l:"Tendencia",v:{any:"Todas",up:"Subiendo",flat:"Estable"}[filters.onlyTrend||"any"]},
-        ].map((f,i)=>(
+        <div style={{fontWeight:700,fontSize:13,color:D.accent,marginBottom:8}}>Filtros activos</div>
+        {[{l:"ROI mínimo",v:`${filters.minROI||25}%`},{l:"Margen mínimo",v:`${filters.minMargin||15}%`},{l:"Sellers máx.",v:filters.maxSellers||10},{l:"BSR máx.",v:`#${parseInt(filters.maxBSR||30000).toLocaleString()}`},{l:"Excluir Amazon",v:filters.excludeAmzSells?"Sí":"No"},{l:"Tendencia",v:{any:"Todas",up:"Subiendo",flat:"Estable"}[filters.onlyTrend||"any"]}].map((f,i)=>(
           <div key={i} style={{display:"flex",justifyContent:"space-between",fontSize:13,padding:"5px 0",borderBottom:`0.5px solid ${D.border}`}}>
             <span style={{color:D.muted}}>{f.l}</span><span style={{fontWeight:700,color:D.accent}}>{f.v}</span>
           </div>
@@ -519,25 +418,22 @@ function ViewFiltros({filters,setFilters}){
   );
 }
 
-// ════════════════════════════════════════════
-// 📦 PRODUCTOS
-// ════════════════════════════════════════════
 function ViewProductos({products,setProducts}){
-  const [form,setForm]=useState({...EMPTY_P,id:Date.now()});
-  const [editing,setEditing]=useState(null);
-  const [show,setShow]=useState(false);
+  const[form,setForm]=useState({...EMPTY_P,id:Date.now()});
+  const[editing,setEditing]=useState(null);
+  const[show,setShow]=useState(false);
   const save=()=>{
-    if(!form.name||!form.buyPrice||!form.amzPrice) return;
+    if(!form.name||!form.buyPrice||!form.amzPrice)return;
     editing?setProducts(ps=>ps.map(p=>p.id===editing?{...form,id:editing}:p)):setProducts(ps=>[...ps,{...form,id:Date.now()}]);
-    setEditing(null); setForm({...EMPTY_P,id:Date.now()}); setShow(false);
+    setEditing(null);setForm({...EMPTY_P,id:Date.now()});setShow(false);
   };
-  const edit=p=>{ setForm({...p}); setEditing(p.id); setShow(true); window.scrollTo(0,0); };
-  const del=id=>{ if(window.confirm("¿Eliminar este producto?")) setProducts(ps=>ps.filter(p=>p.id!==id)); };
+  const edit=p=>{setForm({...p});setEditing(p.id);setShow(true);};
+  const del=id=>{if(window.confirm("¿Eliminar?"))setProducts(ps=>ps.filter(p=>p.id!==id));};
   return(
     <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
         <div><h2 style={{fontSize:18,fontWeight:800,margin:0}}>📦 Mis Productos</h2><p style={{fontSize:12,color:D.muted,margin:"2px 0 0"}}>{products.length} propios + 10 del sistema</p></div>
-        <button onClick={()=>{setEditing(null);setForm({...EMPTY_P,id:Date.now()});setShow(true);window.scrollTo(0,0);}} style={{background:D.accentD,color:"#fff",border:"none",padding:"9px 16px",borderRadius:10,cursor:"pointer",fontSize:13,fontWeight:700}}>+ Añadir</button>
+        <button onClick={()=>{setEditing(null);setForm({...EMPTY_P,id:Date.now()});setShow(true);}} style={{background:D.accentD,color:"#fff",border:"none",padding:"9px 16px",borderRadius:10,cursor:"pointer",fontSize:13,fontWeight:700}}>+ Añadir</button>
       </div>
       {show&&(
         <Card style={{marginBottom:14,border:`0.5px solid ${D.accent}50`}}>
@@ -546,22 +442,20 @@ function ViewProductos({products,setProducts}){
             <label style={{fontSize:11,color:D.muted,display:"block",marginBottom:6}}>Emoji</label>
             <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{EMOJIS.map(e=><button key={e} onClick={()=>setForm(f=>({...f,emoji:e}))} style={{fontSize:18,padding:"4px",borderRadius:6,border:`1px solid ${form.emoji===e?D.accent:D.border}`,background:form.emoji===e?D.accentL:D.surface,cursor:"pointer"}}>{e}</button>)}</div>
           </div>
-          <div style={{display:"flex",flexWrap:"wrap",gap:"0 12px"}}>
-            <div style={{flex:"1 1 100%"}}><Inp label="Nombre del producto *" value={form.name} onChange={v=>setForm(f=>({...f,name:v}))} placeholder="Ej: Detergente Ariel 26 lav."/></div>
-            <div style={{flex:"1 1 45%"}}><Inp label="Marca" value={form.brand} onChange={v=>setForm(f=>({...f,brand:v}))} placeholder="Ariel"/></div>
-            <div style={{flex:"1 1 45%"}}><Inp label="EAN / Código barras" value={form.ean} onChange={v=>setForm(f=>({...f,ean:v}))} placeholder="13 dígitos"/></div>
-            <div style={{flex:"1 1 100%"}}><Slc label="Categoría Amazon" value={form.cat} onChange={v=>setForm(f=>({...f,cat:v}))} options={CATS}/></div>
-            <div style={{flex:"1 1 45%"}}><Inp label="Precio compra (€) *" value={form.buyPrice} onChange={v=>setForm(f=>({...f,buyPrice:v}))} type="number" placeholder="2.50"/></div>
-            <div style={{flex:"1 1 45%"}}><Inp label="Precio Amazon (€) *" value={form.amzPrice} onChange={v=>setForm(f=>({...f,amzPrice:v}))} type="number" placeholder="5.99"/></div>
-            <div style={{flex:"1 1 45%"}}><Inp label="Peso (kg)" value={form.weight} onChange={v=>setForm(f=>({...f,weight:v}))} type="number" placeholder="1.2"/></div>
-            <div style={{flex:"1 1 45%"}}><Inp label="Tienda" value={form.store} onChange={v=>setForm(f=>({...f,store:v}))} placeholder="Makro"/></div>
-            <div style={{flex:"1 1 100%"}}><Inp label="🔗 Link de compra en tienda" value={form.storeUrl} onChange={v=>setForm(f=>({...f,storeUrl:v}))} placeholder="https://..."/></div>
-            <div style={{flex:"1 1 100%"}}><Inp label="🔗 Link en Amazon" value={form.amzUrl} onChange={v=>setForm(f=>({...f,amzUrl:v}))} placeholder="https://amazon.es/..."/></div>
-            <div style={{flex:"1 1 45%"}}><Inp label="BSR Amazon" value={form.bsr} onChange={v=>setForm(f=>({...f,bsr:v}))} type="number" placeholder="1500"/></div>
-            <div style={{flex:"1 1 45%"}}><Inp label="Nº sellers" value={form.sellers} onChange={v=>setForm(f=>({...f,sellers:v}))} type="number" placeholder="8"/></div>
-            <div style={{flex:"1 1 45%"}}><Inp label="Ventas/día est." value={form.dailySales} onChange={v=>setForm(f=>({...f,dailySales:v}))} type="number" placeholder="2"/></div>
-            <div style={{flex:"1 1 45%"}}><Slc label="Tendencia" value={form.trend} onChange={v=>setForm(f=>({...f,trend:v}))} options={TRENDS}/></div>
-          </div>
+          <Inp label="Nombre *" value={form.name} onChange={v=>setForm(f=>({...f,name:v}))} placeholder="Detergente Ariel 26 lav."/>
+          <Inp label="Marca" value={form.brand} onChange={v=>setForm(f=>({...f,brand:v}))} placeholder="Ariel"/>
+          <Inp label="EAN" value={form.ean} onChange={v=>setForm(f=>({...f,ean:v}))} placeholder="13 dígitos"/>
+          <Slc label="Categoría Amazon" value={form.cat} onChange={v=>setForm(f=>({...f,cat:v}))} options={CATS}/>
+          <Inp label="Precio compra (€) *" value={form.buyPrice} onChange={v=>setForm(f=>({...f,buyPrice:v}))} type="number" placeholder="2.50"/>
+          <Inp label="Precio Amazon (€) *" value={form.amzPrice} onChange={v=>setForm(f=>({...f,amzPrice:v}))} type="number" placeholder="5.99"/>
+          <Inp label="Peso (kg)" value={form.weight} onChange={v=>setForm(f=>({...f,weight:v}))} type="number" placeholder="1.2"/>
+          <Inp label="Tienda" value={form.store} onChange={v=>setForm(f=>({...f,store:v}))} placeholder="Makro"/>
+          <Inp label="🔗 Link tienda" value={form.storeUrl} onChange={v=>setForm(f=>({...f,storeUrl:v}))} placeholder="https://..."/>
+          <Inp label="🔗 Link Amazon" value={form.amzUrl} onChange={v=>setForm(f=>({...f,amzUrl:v}))} placeholder="https://amazon.es/..."/>
+          <Inp label="BSR Amazon" value={form.bsr} onChange={v=>setForm(f=>({...f,bsr:v}))} type="number" placeholder="1500"/>
+          <Inp label="Nº sellers" value={form.sellers} onChange={v=>setForm(f=>({...f,sellers:v}))} type="number" placeholder="8"/>
+          <Inp label="Ventas/día" value={form.dailySales} onChange={v=>setForm(f=>({...f,dailySales:v}))} type="number" placeholder="2"/>
+          <Slc label="Tendencia" value={form.trend} onChange={v=>setForm(f=>({...f,trend:v}))} options={TRENDS}/>
           <div style={{display:"flex",gap:6,alignItems:"center",marginTop:4,padding:"8px 10px",background:D.surface,borderRadius:8}}>
             <span style={{fontSize:13,flex:1}}>Amazon vende este producto</span>
             <button onClick={()=>setForm(f=>({...f,amzSells:!f.amzSells}))} style={{background:form.amzSells?D.redD:D.surface,border:`0.5px solid ${form.amzSells?D.red:D.borderMed}`,color:"#fff",padding:"6px 14px",borderRadius:20,cursor:"pointer",fontSize:13,fontWeight:700}}>{form.amzSells?"Sí":"No"}</button>
@@ -576,7 +470,7 @@ function ViewProductos({products,setProducts}){
         <Card style={{textAlign:"center",padding:"2rem"}}>
           <div style={{fontSize:36,marginBottom:10}}>➕</div>
           <div style={{fontWeight:700,marginBottom:6}}>Añade tus propios productos</div>
-          <div style={{color:D.muted,fontSize:13,marginBottom:14}}>El sistema ya tiene 10 productos de demo. Añade los tuyos para personalizarlo.</div>
+          <div style={{color:D.muted,fontSize:13}}>El sistema ya tiene 10 productos de demo.</div>
         </Card>
       )}
       <div style={{display:"grid",gap:8}}>
@@ -593,7 +487,6 @@ function ViewProductos({products,setProducts}){
                 <div style={{display:"flex",gap:4,marginTop:4,flexWrap:"wrap"}}>
                   {pr.ok&&<Pill c={pr.roi>=25?D.green:D.amber} bg={pr.roi>=25?D.greenL:D.amberL}>ROI {pr.roi}%</Pill>}
                   {pr.ok&&<Pill c={lcfg.c} bg={lcfg.bg}>{lcfg.l}</Pill>}
-                  {p.storeUrl&&<Pill c={D.cyan} bg={D.cyanL}>Link ✓</Pill>}
                 </div>
               </div>
               <div style={{display:"flex",flexDirection:"column",gap:4}}>
@@ -608,15 +501,12 @@ function ViewProductos({products,setProducts}){
   );
 }
 
-// ════════════════════════════════════════════
-// 📊 CALCULADORA
-// ════════════════════════════════════════════
 function ViewCalc(){
-  const [cat,setCat]=useState("HomeKitchen");
-  const [buyPrice,setBuyPrice]=useState("");
-  const [amzPrice,setAmzPrice]=useState("");
-  const [weight,setWeight]=useState("");
-  const [uds,setUds]=useState(50);
+  const[cat,setCat]=useState("HomeKitchen");
+  const[buyPrice,setBuyPrice]=useState("");
+  const[amzPrice,setAmzPrice]=useState("");
+  const[weight,setWeight]=useState("");
+  const[uds,setUds]=useState(50);
   const bp=parseFloat(buyPrice)||0,ap=parseFloat(amzPrice)||0,w=parseFloat(weight)||0.5;
   const pr=calcProfit(bp,ap,w,cat);
   const ready=bp>0&&ap>0;
@@ -631,11 +521,9 @@ function ViewCalc(){
         ))}
       </div>
       <Card style={{marginBottom:12}}>
-        <div style={{display:"flex",flexWrap:"wrap",gap:"0 12px"}}>
-          <div style={{flex:"1 1 45%"}}><Inp label="Precio compra (€)" value={buyPrice} onChange={setBuyPrice} placeholder="0.00" type="number"/></div>
-          <div style={{flex:"1 1 45%"}}><Inp label="Precio Amazon (€)" value={amzPrice} onChange={setAmzPrice} placeholder="0.00" type="number"/></div>
-          <div style={{flex:"1 1 100%"}}><Inp label="Peso (kg)" value={weight} onChange={setWeight} placeholder="0.5" type="number"/></div>
-        </div>
+        <Inp label="Precio compra (€)" value={buyPrice} onChange={setBuyPrice} placeholder="0.00" type="number"/>
+        <Inp label="Precio Amazon (€)" value={amzPrice} onChange={setAmzPrice} placeholder="0.00" type="number"/>
+        <Inp label="Peso (kg)" value={weight} onChange={setWeight} placeholder="0.5" type="number"/>
         {ready&&(
           <div style={{background:sm.bg,border:`1.5px solid ${sm.c}50`,borderRadius:12,padding:"14px",textAlign:"center",marginTop:8}}>
             <div style={{fontSize:26,marginBottom:4}}>{sm.icon}</div>
@@ -648,7 +536,7 @@ function ViewCalc(){
       {ready&&(
         <>
           <Card style={{marginBottom:12}}>
-            <div style={{fontWeight:700,fontSize:14,marginBottom:10}}>Desglose real de costes</div>
+            <div style={{fontWeight:700,fontSize:14,marginBottom:10}}>Desglose real</div>
             {[{l:"Amazon (IVA inc.)",v:ap,pos:true},{l:`Comisión ${(pr.refPct*100).toFixed(0)}%`,v:pr.ref,pos:false},{l:`FBA (${w}kg)`,v:pr.fba,pos:false},{l:"Envío a FBA",v:pr.ship,pos:false},{l:"Precio compra",v:bp,pos:false}].map((b,i)=>(
               <div key={i} style={{marginBottom:7}}>
                 <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:2}}><span style={{color:D.muted}}>{b.l}</span><span style={{fontWeight:700,color:b.pos?D.green:D.red}}>{b.pos?"+":"−"}€{b.v.toFixed(2)}</span></div>
@@ -656,15 +544,6 @@ function ViewCalc(){
               </div>
             ))}
             <div style={{borderTop:`0.5px solid ${D.border}`,paddingTop:8,marginTop:4,display:"flex",justifyContent:"space-between"}}><span style={{fontWeight:700}}>Beneficio neto/ud</span><span style={{fontSize:18,fontWeight:800,color:pr.net>=0?D.green:D.red}}>€{pr.net}</span></div>
-          </Card>
-          <Card style={{marginBottom:12,background:D.accentL,border:`0.5px solid ${D.accent}40`}}>
-            <div style={{fontWeight:700,fontSize:13,color:D.accent,marginBottom:8}}>Precio mínimo de venta para ganar</div>
-            {[10,20,30].map(m=>(
-              <div key={m} style={{display:"flex",justifyContent:"space-between",fontSize:13,padding:"5px 0",borderBottom:`0.5px solid ${D.border}`}}>
-                <span style={{color:D.muted}}>Para {m}% margen</span>
-                <span style={{fontWeight:800,color:D.accent}}>€{r2(((bp/(1+VAT)+pr.fba+pr.ship)/(1-pr.refPct-m/100))*(1+VAT))}</span>
-              </div>
-            ))}
           </Card>
           <Card style={{background:D.accentL,border:`0.5px solid ${D.accent}40`}}>
             <div style={{fontWeight:700,fontSize:13,color:D.accent,marginBottom:8}}>Simulador de lote</div>
@@ -685,29 +564,24 @@ function ViewCalc(){
   );
 }
 
-// ════════════════════════════════════════════
-// 🏭 DEPÓSITO
-// ════════════════════════════════════════════
 function ViewDeposito({deposit,setDeposit}){
-  const [addMode,setAddMode]=useState(false);
-  const [newItem,setNewItem]=useState({name:"",emoji:"📦",units:"",buyPrice:"",amzPrice:"",storeUrl:"",amzUrl:""});
+  const[addMode,setAddMode]=useState(false);
+  const[newItem,setNewItem]=useState({name:"",emoji:"📦",units:"",buyPrice:"",amzPrice:"",storeUrl:"",amzUrl:""});
   const totalUnits=deposit.reduce((s,p)=>s+p.units,0);
   const totalInv=r2(deposit.reduce((s,p)=>s+p.invested,0));
   const totalBenPot=r2(deposit.reduce((s,p)=>s+(p.profit?.net||0)*p.units,0));
-
   const addManual=()=>{
-    if(!newItem.name||!newItem.units) return;
+    if(!newItem.name||!newItem.units)return;
     const bp=parseFloat(newItem.buyPrice)||0,ap=parseFloat(newItem.amzPrice)||0;
     const pr=calcProfit(bp,ap,0.5,"HomeKitchen");
     setDeposit(d=>[...d,{productId:Date.now(),name:newItem.name,emoji:newItem.emoji,units:parseInt(newItem.units)||0,invested:r2(bp*parseInt(newItem.units||0)),buyPrice:bp,amzPrice:ap,storeUrl:newItem.storeUrl||"",amzUrl:newItem.amzUrl||"",profit:pr,date:new Date().toLocaleDateString("es-ES")}]);
     setNewItem({name:"",emoji:"📦",units:"",buyPrice:"",amzPrice:"",storeUrl:"",amzUrl:""});
     setAddMode(false);
   };
-
   return(
     <div>
       <h2 style={{fontSize:18,fontWeight:800,margin:"0 0 4px"}}>🏭 Mi Depósito</h2>
-      <p style={{color:D.muted,fontSize:13,margin:"0 0 14px"}}>Stock comprado. Cuando vendas, pulsa "-1 vendida".</p>
+      <p style={{color:D.muted,fontSize:13,margin:"0 0 14px"}}>Stock comprado. Pulsa "-1 vendida" cuando vendas.</p>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}}>
         <KPI label="Unidades" value={totalUnits} sub="en stock" icon="📦"/>
         <KPI label="Invertido" value={`€${totalInv}`} icon="💸"/>
@@ -717,15 +591,12 @@ function ViewDeposito({deposit,setDeposit}){
       <button onClick={()=>setAddMode(!addMode)} style={{background:D.accentD,color:"#fff",border:"none",padding:"10px 18px",borderRadius:10,cursor:"pointer",fontSize:13,fontWeight:700,marginBottom:14,width:"100%"}}>+ Añadir stock manualmente</button>
       {addMode&&(
         <Card style={{marginBottom:14,border:`0.5px solid ${D.accent}50`}}>
-          <div style={{fontWeight:700,fontSize:14,marginBottom:10,color:D.accent}}>Añadir producto al depósito</div>
           <Inp label="Nombre" value={newItem.name} onChange={v=>setNewItem(x=>({...x,name:v}))} placeholder="Detergente Ariel"/>
-          <div style={{display:"flex",flexWrap:"wrap",gap:"0 12px"}}>
-            <div style={{flex:"1 1 45%"}}><Inp label="Unidades compradas" value={newItem.units} onChange={v=>setNewItem(x=>({...x,units:v}))} type="number" placeholder="50"/></div>
-            <div style={{flex:"1 1 45%"}}><Inp label="Precio compra (€)" value={newItem.buyPrice} onChange={v=>setNewItem(x=>({...x,buyPrice:v}))} type="number" placeholder="2.50"/></div>
-            <div style={{flex:"1 1 45%"}}><Inp label="Precio Amazon (€)" value={newItem.amzPrice} onChange={v=>setNewItem(x=>({...x,amzPrice:v}))} type="number" placeholder="5.99"/></div>
-            <div style={{flex:"1 1 100%"}}><Inp label="🔗 Link tienda" value={newItem.storeUrl} onChange={v=>setNewItem(x=>({...x,storeUrl:v}))} placeholder="https://..."/></div>
-            <div style={{flex:"1 1 100%"}}><Inp label="🔗 Link Amazon" value={newItem.amzUrl} onChange={v=>setNewItem(x=>({...x,amzUrl:v}))} placeholder="https://amazon.es/..."/></div>
-          </div>
+          <Inp label="Unidades" value={newItem.units} onChange={v=>setNewItem(x=>({...x,units:v}))} type="number" placeholder="50"/>
+          <Inp label="Precio compra (€)" value={newItem.buyPrice} onChange={v=>setNewItem(x=>({...x,buyPrice:v}))} type="number" placeholder="2.50"/>
+          <Inp label="Precio Amazon (€)" value={newItem.amzPrice} onChange={v=>setNewItem(x=>({...x,amzPrice:v}))} type="number" placeholder="5.99"/>
+          <Inp label="🔗 Link tienda" value={newItem.storeUrl} onChange={v=>setNewItem(x=>({...x,storeUrl:v}))} placeholder="https://..."/>
+          <Inp label="🔗 Link Amazon" value={newItem.amzUrl} onChange={v=>setNewItem(x=>({...x,amzUrl:v}))} placeholder="https://amazon.es/..."/>
           <div style={{display:"flex",gap:6,marginTop:8}}>
             <BtnPrimary onClick={addManual}>Guardar</BtnPrimary>
             <button onClick={()=>setAddMode(false)} style={{background:"transparent",color:D.muted,border:`0.5px solid ${D.borderMed}`,padding:"12px 16px",borderRadius:12,cursor:"pointer",fontSize:14}}>Cancelar</button>
@@ -736,7 +607,7 @@ function ViewDeposito({deposit,setDeposit}){
         <Card style={{textAlign:"center",padding:"2rem"}}>
           <div style={{fontSize:36,marginBottom:10}}>🏭</div>
           <div style={{fontWeight:700,marginBottom:6}}>Depósito vacío</div>
-          <div style={{color:D.muted,fontSize:13}}>Confirma una compra desde "Comprar Hoy" o añade stock manualmente.</div>
+          <div style={{color:D.muted,fontSize:13}}>Confirma una compra desde "Comprar Hoy".</div>
         </Card>
       )}
       <div style={{display:"grid",gap:10}}>
@@ -767,9 +638,6 @@ function ViewDeposito({deposit,setDeposit}){
   );
 }
 
-// ════════════════════════════════════════════
-// 📈 STATS / DASHBOARD
-// ════════════════════════════════════════════
 function ViewDash({enriched,filtered,deposit}){
   const avgROI=filtered.length>0?r2(filtered.reduce((s,p)=>s+p.profit.roi,0)/filtered.length):0;
   const totalInvDep=r2(deposit.reduce((s,p)=>s+p.invested,0));
@@ -780,15 +648,15 @@ function ViewDash({enriched,filtered,deposit}){
       <h2 style={{fontSize:18,fontWeight:800,margin:"0 0 4px"}}>📈 Estadísticas</h2>
       <p style={{color:D.muted,fontSize:13,margin:"0 0 14px"}}>Resumen de tu catálogo y depósito</p>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
-        <KPI label="Productos analizados" value={enriched.length} icon="📦"/>
-        <KPI label="Con tus filtros" value={filtered.length} c={D.accent} icon="🎛"/>
+        <KPI label="Productos" value={enriched.length} icon="📦"/>
+        <KPI label="Con filtros" value={filtered.length} c={D.accent} icon="🎛"/>
         <KPI label="ROI promedio" value={`${avgROI}%`} c={D.purple} bg={D.purpleL} icon="📈"/>
         <KPI label="Oport. altas" value={filtered.filter(p=>p.score.level==="high").length} c={D.green} bg={D.greenL} icon="💡"/>
         <KPI label="En depósito" value={`€${totalInvDep}`} c={D.accent} icon="🏭"/>
-        <KPI label="Ben. potencial dep." value={`€${totalBenDep}`} c={D.green} bg={D.greenL} icon="✅"/>
+        <KPI label="Ben. potencial" value={`€${totalBenDep}`} c={D.green} bg={D.greenL} icon="✅"/>
       </div>
       <Card style={{marginBottom:12}}>
-        <div style={{fontWeight:700,fontSize:14,marginBottom:12}}>🏆 Top 5 por ROI (con tus filtros)</div>
+        <div style={{fontWeight:700,fontSize:14,marginBottom:12}}>🏆 Top 5 por ROI</div>
         {top5.length===0?<div style={{color:D.muted,textAlign:"center",padding:"1rem"}}>Sin resultados con los filtros actuales.</div>:
         top5.map((p,i)=>{
           const lcfg=LCFG[p.score.level];
