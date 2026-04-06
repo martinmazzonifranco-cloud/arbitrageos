@@ -68,11 +68,11 @@ const BASE_CAT=[
   {id:"b10",name:"Colonia Nenuco 600ml",brand:"Nenuco",ean:"8410289004006",cat:"Health",emoji:"👶",buyPrice:4.20,store:"Mercadona",storeUrl:"https://tienda.mercadona.es/search?query=nenuco+colonia",amzUrl:"https://www.amazon.es/s?k=nenuco+colonia+600ml",amzPrice:7.49,weight:0.65,bsr:1890,sellers:9,amzSells:false,trend:"up",dailySales:1.3},
 ];
 
-const useStorage=(key,init)=>{
-  const[val,setVal]=useState(()=>{try{const s=sessionStorage.getItem(key);return s?JSON.parse(s):init;}catch{return init;}});
-  const set=v=>{const nv=typeof v==="function"?v(val):v;setVal(nv);try{sessionStorage.setItem(key,JSON.stringify(nv));}catch{}};
+function useStorage(key,init){
+  const[val,setVal]=useState(init);
+  const set=v=>{const nv=typeof v==="function"?v(val):v;setVal(nv);try{if(typeof window!=="undefined")sessionStorage.setItem(key,JSON.stringify(nv));}catch{}};
   return[val,set];
-};
+}
 
 const EMPTY_P={id:0,name:"",brand:"",ean:"",cat:"HomeKitchen",emoji:"📦",buyPrice:"",store:"",storeUrl:"",amzUrl:"",amzPrice:"",weight:"",bsr:"",sellers:"",amzSells:false,trend:"flat",dailySales:""};
 const LCFG={high:{c:D.green,bg:D.greenL,l:"Alta"},medium:{c:D.amber,bg:D.amberL,l:"Media"},low:{c:D.red,bg:D.redL,l:"Baja"}};
