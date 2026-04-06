@@ -1,5 +1,30 @@
 import { useState, useRef, useEffect } from "react";
 
+const PASSWORD = "Nonoslosamo3&";
+
+function LoginScreen({ onLogin }) {
+  const [pass, setPass] = useState("");
+  const [error, setError] = useState(false);
+  const check = () => {
+    if (pass === PASSWORD) { onLogin(); }
+    else { setError(true); setTimeout(() => setError(false), 2000); }
+  };
+  return (
+    <div style={{minHeight:"100vh",background:"#0a0a0f",display:"flex",alignItems:"center",justifyContent:"center",padding:"1rem"}}>
+      <div style={{background:"#16161f",borderRadius:16,padding:"2rem",width:"100%",maxWidth:360,border:"0.5px solid rgba(255,255,255,0.07)"}}>
+        <div style={{textAlign:"center",marginBottom:"1.5rem"}}>
+          <div style={{fontSize:32,marginBottom:8}}>🔐</div>
+          <div style={{color:"#818cf8",fontWeight:800,fontSize:22}}>Kairoz<span style={{color:"#c084fc"}}>Distri</span></div>
+          <div style={{color:"#64748b",fontSize:13,marginTop:4}}>Introduce tu contraseña para acceder</div>
+        </div>
+        <input value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&check()} type="password" placeholder="Contraseña" style={{width:"100%",padding:"12px 14px",borderRadius:10,border:`1px solid ${error?"#f87171":"rgba(255,255,255,0.13)"}`,background:"#111118",color:"#fff",fontSize:16,outline:"none",marginBottom:10,boxSizing:"border-box"}}/>
+        {error&&<div style={{color:"#f87171",fontSize:13,marginBottom:8,textAlign:"center"}}>Contraseña incorrecta</div>}
+        <button onClick={check} style={{width:"100%",background:"linear-gradient(135deg,#6366f1,#7c3aed)",color:"#fff",border:"none",padding:"13px",borderRadius:10,cursor:"pointer",fontSize:15,fontWeight:800}}>Entrar</button>
+      </div>
+    </div>
+  );
+
+
 const D = {
   bg:"#0a0a0f",surface:"#111118",card:"#16161f",border:"rgba(255,255,255,0.07)",
   borderMed:"rgba(255,255,255,0.13)",primary:"#f1f5f9",muted:"#64748b",faint:"#334155",
@@ -111,6 +136,14 @@ const LinkBtn=({href,children,color})=>(
 const NAV=[{id:"hoy",icon:"⚡",label:"Hoy"},{id:"productos",icon:"📦",label:"Productos"},{id:"filtros",icon:"🎛",label:"Filtros"},{id:"calc",icon:"📊",label:"Calc."},{id:"deposito",icon:"🏭",label:"Depósito"},{id:"dash",icon:"📈",label:"Stats"}];
 
 export default function App(){
+  const [loggedIn, setLoggedIn] = useState(() => {
+    try { return sessionStorage.getItem("loggedIn") === "true"; } catch { return false; }
+  });
+  const login = () => {
+    try { sessionStorage.setItem("loggedIn","true"); } catch {}
+    setLoggedIn(true);
+  };
+  if (!loggedIn) return <LoginScreen onLogin={login}/>;
   const [view,setView]=useState("hoy");
   const [products,setProducts]=useStorage("products",[]);
   const [deposit,setDeposit]=useStorage("deposit",[]);
@@ -799,4 +832,3 @@ function ViewDash({enriched,filtered,deposit}){
       </Card>
     </div>
   );
-}
