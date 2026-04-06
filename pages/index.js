@@ -117,8 +117,8 @@ const LinkBtn=({href,children,color})=>(
 const NAV=[{id:"hoy",icon:"⚡",label:"Hoy"},{id:"productos",icon:"📦",label:"Productos"},{id:"filtros",icon:"🎛",label:"Filtros"},{id:"calc",icon:"📊",label:"Calc."},{id:"deposito",icon:"🏭",label:"Depósito"},{id:"dash",icon:"📈",label:"Stats"}];
 
 export default function App(){
-  const[loggedIn,setLoggedIn]=useState(()=>{try{return sessionStorage.getItem("loggedIn")==="true";}catch{return false;}});
-  const login=()=>{try{sessionStorage.setItem("loggedIn","true");}catch{}setLoggedIn(true);};
+    const[loggedIn,setLoggedIn]=useState(false);
+  const login=()=>setLoggedIn(true);
   if(!loggedIn)return <LoginScreen onLogin={login}/>;
 
   const[view,setView]=useState("hoy");
